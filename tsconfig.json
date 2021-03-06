@@ -1,0 +1,35 @@
+{
+  "ts-node": {
+    "files": true
+  },
+  "compilerOptions": {
+    // TypeScriptのコードを何に変換するかを指定する。
+    // 今回はBabelが変換を担当するのでそれほど重要でないはずだが（多分）、公式ブログの例を踏襲しておく。
+    // targetの値に応じて、他のオプションのデフォルト値が変わるので、こうしておいた方が色々便利なのかも。
+    "target": "esnext",
+    "module": "commonjs",
+    "forceConsistentCasingInFileNames": true,
+    // 詳細は割愛するが、とりあえずこう設定するのがおすすめなオプション。
+    "moduleResolution": "node",
+    // TypeScriptと一緒にJavaScriptもtscの処理対象に含められるようにする。必要に応じて。
+    "allowJs": true,
+    // （変換はBabelが担当するから）tscはファイルを出力しないように指示する。
+    // "noEmit": true,
+    // 色々な型チェックのルールを厳しくする。おすすめ。
+    "strict": true,
+    // コードの変換に関するオプションのようなので、これもそれほど重要でないはずだが（多分）、公式ブログの例を踏襲しておく。
+    "isolatedModules": true,
+    // "typeRoots": [ "server/types/express", "node_modules/@types" ],
+    "sourceMap": false,
+    "outDir": "./dist",
+    "composite": true,
+  },
+  "include": [
+    "./src/**/*",
+  ],
+  "exclude": [
+    "./.vscode",
+    "./node_modules",
+    "./dist"
+  ]
+}
