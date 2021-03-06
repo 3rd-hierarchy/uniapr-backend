@@ -5,9 +5,10 @@ import * as cors from 'cors'
 import * as helmet from 'helmet'
 import * as path from 'path'
 
-import { Template}  from './template'
+import { Template }  from './template'
 import { router as ApiRouter } from './routes/api.routes'
-
+import { Logger } from './utils/logger'
+import { UniswapSyncher } from './batch/sync'
 
 export const app: express.Express = express()
 
@@ -19,6 +20,8 @@ app.use(bodyParser.urlencoded({ extended: true}))
 app.use(compress())
 app.use(helmet())
 app.use(cors())
+
+app.use(Logger.instance.accessLogger)
 
 app.use('/', ApiRouter)
 
@@ -34,3 +37,5 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
 app.get('*', (req, res) => {
   res.status(200).send(Template())
 })
+
+UniswapSyncher.schedule()

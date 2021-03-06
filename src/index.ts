@@ -1,9 +1,10 @@
-import {config} from './config/config'
-import {app} from './express'
+import { config } from './config/config'
+import { app } from './express'
 import * as mongoose from 'mongoose'
+import { Logger } from './utils/logger'
 
 app.listen(config['port'], () => {
-  console.info('Server started on port %s.', config['port'])
+  Logger.instance.logger?.info('Server started on port %s.', config['port'])
 })
 
 mongoose.connect(config['mongoUri'], {
