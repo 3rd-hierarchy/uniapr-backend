@@ -5,5 +5,5 @@ export const config: { [key: string]: any } = {
     process.env.MONGO_HOST ||
     'mongodb://' + (process.env.IP || 'localhost') + ':' +
     (process.env.MONGO_PORT || '27017') +
-    '/uniapr'
+    '/defiapr'
 }
