@@ -14,10 +14,10 @@ export module HistorySchemaDefine {
 
 export const HistorySchema = new Schema({
   [HistorySchemaDefine.PAIR_NAME]: {
-    type: String,
+    type: String
   },
   [HistorySchemaDefine.DEFI_NAME]: {
-    type: String
+    type: String,
   },
   [HistorySchemaDefine.PAIR_ID]: {
     type: String
@@ -38,4 +38,5 @@ export const HistorySchema = new Schema({
     type: Date,
     default: () => new Date
   }
-})
+},
+{capped: {size: 100 * 1024 * 1024, max: 100000}})

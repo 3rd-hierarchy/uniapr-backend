@@ -18,4 +18,3 @@ mongoose.connection.on('error', () => {
 app.listen(config['port'], () => {
   Logger.instance.logger?.info('Server started on port %s.', config['port'])
 })
-

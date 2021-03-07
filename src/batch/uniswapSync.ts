@@ -3,9 +3,11 @@ import { Worker } from 'worker_threads'
 import { Logger } from '../utils/logger'
 import * as path from 'path'
 import { Mutex } from 'async-mutex'
-import { HistoryModel } from '../models/history.model'
 import { append, getPairWeekData } from '../controllers/history.controller'
 import { HistorySchemaDefine } from '../models/history.schema'
+import * as mongoose from 'mongoose'
+import { config } from '../config/config'
+import { IHistory } from '../models/history.model'
 
 const DEFI_NAME = "UniswapV2"
 const UNISWAP_ENDPOINT = "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2"
@@ -64,6 +66,14 @@ export class UniswapSyncher {
       this._self = new UniswapSyncher()
     }
 
+    mongoose.connect(config['mongoUri'], {
+      useNewUrlParser: true,
+      useCreateIndex: true,
+      useUnifiedTopology: true
+    }).catch((err) => {
+      Logger.instance.logger?.error('Mongo db connection faild. (%s)', err)
+    })
+
     const release = await this._self._mutex.acquire()
     try {
       await this._self.processInternal()
@@ -119,22 +129,28 @@ export class UniswapSyncher {
         return
       }
 
-      var aprWeak = -1
-      try {
-        aprWeak = await this.getAprWeek(value.id)
-      } catch (err) {
-
-      }
+      const baseVolume = parseFloat(pairData[0].pair.volumeUSD);
+      const currentVolume = parseFloat(pairData[1].pair.volumeUSD);
+      const volume = currentVolume - baseVolume;
+      const reservedUSD = parseFloat(pairData[1].pair.reserveUSD);
 
       var appendData = {
         [HistorySchemaDefine.DEFI_NAME]: DEFI_NAME,
         [HistorySchemaDefine.RESERVED_USD]: parseFloat(pairData[1].pair.reserveUSD),
-        [HistorySchemaDefine.VOLUME_USD]: volumeUSD,
+        [HistorySchemaDefine.VOLUME_USD]: volume,
         [HistorySchemaDefine.PAIR_ID]: value.id,
         [HistorySchemaDefine.PAIR_NAME]: pairData[0].pair.token0.symbol + "-" + pairData[0].pair.token1.symbol,
-        [HistorySchemaDefine.APR]: this.getApr(pairData[0], pairData[1]),
-        [HistorySchemaDefine.APR_WEEK]: aprWeak
+        [HistorySchemaDefine.APR]: this.getAnnualInterest(reservedUSD, volume),
+        [HistorySchemaDefine.APR_WEEK]: -1
       }
+
+      var aprWeak = -1
+      try {
+        aprWeak = await this.getAprWeek(value.id, appendData)
+      } catch (err) {
+
+      }
+      appendData.aprWeek = aprWeak
 
       append(appendData)
     })
@@ -183,7 +199,7 @@ export class UniswapSyncher {
       const query = gql`
       {
         pairs(
-          first: 110
+          first: 200
           orderBy: reserveUSD
           orderDirection: desc
         ) {
@@ -223,16 +239,6 @@ export class UniswapSyncher {
     });
   }
 
-  private getApr(previous: IPairInfo, current: IPairInfo): number {
-    const baseVolume = parseFloat(previous.pair.volumeUSD);
-    const currentVolume = parseFloat(current.pair.volumeUSD);
-
-    const volume = currentVolume - baseVolume;
-
-    const reservedUSD = parseFloat(current.pair.reserveUSD);
-    return this.getAnnualInterest(reservedUSD, volume)
-  }
-
   private getAnnualInterest(liquidity: number, volume: number) {
     const ratio = volume / liquidity
     const day = ratio * 0.003;
@@ -242,22 +248,22 @@ export class UniswapSyncher {
     return year
   }
 
-  private async getAprWeek(pairId: string): Promise<number> {
+  private async getAprWeek(pairId: string, newest: IHistory): Promise<number> {
     return new Promise(async (resolve, reject) => {
       try {
         const weekData = await getPairWeekData(DEFI_NAME, pairId)
 
         if (weekData.length < 2) {
-          this._logger?.debug("historical pair data size = " + weekData.length)
           reject(-1)
           return
         }
 
-        const totalVolume = weekData.reduce((acc, val): number => {
+        let totalVolume = weekData.reduce((acc, val): number => {
           return acc + val.volumeUSD
         }, 0)
+        totalVolume += newest.volumeUSD
 
-        const volumeAverage = totalVolume / weekData.length
+        const volumeAverage = totalVolume / (weekData.length + 1)
 
         resolve(this.getAnnualInterest(weekData[0].reserveUSD, volumeAverage))
       } catch (err) {

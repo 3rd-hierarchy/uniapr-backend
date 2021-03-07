@@ -28,7 +28,7 @@ export const getPairWeekData = async (difiName: string, pairId: string): Promise
         }
       ).sort(
         { [HistorySchemaDefine.CREATED]: -1 }
-      ).limit(7)
+      ).limit(6)
 
       resolve(histories)
     } catch (err) {
@@ -41,16 +41,19 @@ export const getPairWeekData = async (difiName: string, pairId: string): Promise
 export const list = async (req: Request, res: Response) => {
   const release = await UniswapSyncher.instance.mutex.acquire()
   try {
-    let histories = await HistoryModel.find().sort(
-      {[HistorySchemaDefine.CREATED]: -1, [HistorySchemaDefine.RESERVED_USD]: -1}
-      ).limit(LIST_COUNT)
-    
-      res.json({
-        list: histories
-      })
+    const histories = await HistoryModel.find().sort({[HistorySchemaDefine.CREATED]: -1})
+      .limit(LIST_COUNT * 2)
+
+    const sorted = histories.sort((a, b): number => {
+      return b.reserveUSD - a.reserveUSD
+    }).slice(0, LIST_COUNT)
+
+    res.json({
+      list: sorted
+    })
   } catch (err) {
     logger?.error(err)
-    return res.status(400)
+    res.status(400).send()
   } finally {
     release()
   }

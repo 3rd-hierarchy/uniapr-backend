@@ -1,4 +1,4 @@
-import { model, Document, Model } from 'mongoose'
+import { model, Document } from 'mongoose'
 import { HistorySchemaDefine, HistorySchema } from './history.schema'
 
 export interface IHistory {
