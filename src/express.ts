@@ -8,7 +8,7 @@ import * as path from 'path'
 import { Template }  from './template'
 import { router as ApiRouter } from './routes/api.routes'
 import { Logger } from './utils/logger'
-import { UniswapSyncher } from './batch/sync'
+import { UniswapSyncher } from './batch/uniswapSync'
 
 export const app: express.Express = express()
 
@@ -38,4 +38,4 @@ app.get('*', (req, res) => {
   res.status(200).send(Template())
 })
 
-UniswapSyncher.schedule()
+// UniswapSyncher.schedule()
