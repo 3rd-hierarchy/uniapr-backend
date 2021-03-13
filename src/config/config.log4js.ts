@@ -8,7 +8,7 @@ export const log4jsConfig = {
   categories: {
     default: {
       appenders: ["console"],
-      level: "debug"
+      level: "all"
     },
     web: {
       appenders: ["console"],

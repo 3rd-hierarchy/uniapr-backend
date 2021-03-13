@@ -7,7 +7,7 @@ import * as path from 'path'
 
 import { router as ApiRouter } from './routes/api.routes'
 import { Logger } from './utils/logger'
-import { UniswapSyncher } from './batch/uniswapSync'
+import { defiSyncher } from './batch/defiSync'
 
 export const app: express.Express = express()
 
@@ -35,4 +35,4 @@ app.get('*', (req, res) => {
   res.status(200).sendFile(path.join(CURRENT_WORKING_DIR, 'dist/client/index.html'))
 })
 
-// UniswapSyncher.schedule()
+defiSyncher.schedule()

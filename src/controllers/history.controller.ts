@@ -1,8 +1,9 @@
-import { UniswapSyncher } from "../batch/uniswapSync";
+import { defiSyncher } from "../batch/defiSync";
 import { HistoryModel, IHistoryDocument } from "../models/history.model";
 import { IHistory, HistorySchemaDefine } from "../commons/history.types";
 import { Logger } from "../utils/logger"
 import { Request, Response, NextFunction } from 'express'
+import request from "graphql-request";
 
 const LIST_COUNT = 100
 const logger = Logger.instance.logger
@@ -38,21 +39,26 @@ export const getPairWeekData = async (difiName: string, pairId: string): Promise
 }
 
 export const list = async (req: Request, res: Response) => {
-  const release = await UniswapSyncher.instance.mutex.acquire()
+  const release = await defiSyncher.instance.mutex.acquire()
   try {
-    const histories = await HistoryModel.find().sort({[HistorySchemaDefine.CREATED]: -1})
+    if (!(typeof req.query.name === 'string')) {
+      res.status(400).send()
+      return
+    }
+
+    const histories = await HistoryModel
+      .find({ [HistorySchemaDefine.DEFI_NAME]: req.query.name})
+      .sort({[HistorySchemaDefine.CREATED]: -1})
       .limit(LIST_COUNT * 2)
 
     const sorted = histories.sort((a, b): number => {
       return b.reserveUSD - a.reserveUSD
     }).slice(0, LIST_COUNT)
 
-    res.json({
-      list: sorted
-    })
+    res.json(sorted)
   } catch (err) {
     logger?.error(err)
-    res.status(400).send()
+    res.status(500).send()
   } finally {
     release()
   }
