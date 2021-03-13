@@ -1,7 +1,6 @@
-import { Mutex } from "async-mutex";
 import { UniswapSyncher } from "../batch/uniswapSync";
-import { HistoryModel, IHistory, IHistoryDocument } from "../models/history.model";
-import { HistorySchemaDefine } from "../models/history.schema";
+import { HistoryModel, IHistoryDocument } from "../models/history.model";
+import { IHistory, HistorySchemaDefine } from "../commons/history.types";
 import { Logger } from "../utils/logger"
 import { Request, Response, NextFunction } from 'express'
 

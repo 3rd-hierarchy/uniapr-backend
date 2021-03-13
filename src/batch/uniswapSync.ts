@@ -4,10 +4,9 @@ import { Logger } from '../utils/logger'
 import * as path from 'path'
 import { Mutex } from 'async-mutex'
 import { append, getPairWeekData } from '../controllers/history.controller'
-import { HistorySchemaDefine } from '../models/history.schema'
+import { HistorySchemaDefine, IHistory } from '../commons/history.types'
 import * as mongoose from 'mongoose'
 import { config } from '../config/config'
-import { IHistory } from '../models/history.model'
 
 const DEFI_NAME = "UniswapV2"
 const UNISWAP_ENDPOINT = "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2"

@@ -1,16 +1,5 @@
 import { Schema } from "mongoose"
-
-export module HistorySchemaDefine {
-  export const ID = '_id'
-  export const DEFI_NAME = 'defiName'
-  export const PAIR_NAME = 'pairName'
-  export const PAIR_ID = 'pairId'
-  export const RESERVED_USD = 'reserveUSD'
-  export const VOLUME_USD = 'volumeUSD'
-  export const APR = 'apr'
-  export const APR_WEEK = 'aprWeek'
-  export const CREATED = 'created'
-}
+import { HistorySchemaDefine } from '../commons/history.types'
 
 export const HistorySchema = new Schema({
   [HistorySchemaDefine.PAIR_NAME]: {
