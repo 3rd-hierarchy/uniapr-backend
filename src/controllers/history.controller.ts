@@ -51,7 +51,9 @@ export const list = async (req: Request, res: Response) => {
       .sort({[HistorySchemaDefine.CREATED]: -1})
       .limit(LIST_COUNT * 2)
 
-    const sorted = histories.sort((a, b): number => {
+    const shurinked = removeDucplicate(histories)
+
+    const sorted = shurinked.sort((a, b): number => {
       return b.reserveUSD - a.reserveUSD
     }).slice(0, LIST_COUNT)
 
@@ -62,4 +64,19 @@ export const list = async (req: Request, res: Response) => {
   } finally {
     release()
   }
+}
+
+function removeDucplicate(source: IHistory[]): IHistory[] {
+  var pairNameArray = [] as string[]
+
+  let dist = source.filter((data) => {
+    if (pairNameArray.includes(data.pairName)) {
+      return false
+    } else {
+      pairNameArray.push(data.pairName)
+      return true
+    }
+  })
+
+  return dist
 }

@@ -11,7 +11,7 @@ import { config } from '../config/config'
 const UNISWAP_NAME = "UniswapV2"
 const UNISWAP_ENDPOINT = "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2"
 
-const SUSHISWAP_NAME = "SushiswapV2"
+const SUSHISWAP_NAME = "Sushiswap"
 const SUSHISWAP_ENDPOINT = "https://api.thegraph.com/subgraphs/name/sushiswap/exchange"
 
 const ETH_ENDPOINT = "https://api.thegraph.com/subgraphs/name/blocklytics/ethereum-blocks"
