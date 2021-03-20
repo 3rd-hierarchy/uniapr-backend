@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.list = exports.getPairWeekData = exports.append = void 0;
-const defiSync_1 = require("../batch/defiSync");
 const history_model_1 = require("../models/history.model");
 const history_types_1 = require("../commons/history.types");
 const logger_1 = require("../utils/logger");
@@ -34,7 +33,7 @@ const getPairWeekData = async (difiName, pairId) => {
 };
 exports.getPairWeekData = getPairWeekData;
 const list = async (req, res) => {
-    const release = await defiSync_1.defiSyncher.instance.mutex.acquire();
+    // const release = await defiSyncher.instance.mutex.acquire()
     try {
         if (!(typeof req.query.name === 'string')) {
             res.status(400).send();
@@ -55,7 +54,7 @@ const list = async (req, res) => {
         res.status(500).send();
     }
     finally {
-        release();
+        // release()
     }
 };
 exports.list = list;

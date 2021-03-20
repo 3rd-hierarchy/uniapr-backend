@@ -63,9 +63,13 @@ export class defiSyncher {
 
     // test
     // new Worker(path.join(__dirname, 'worker.js'), { execArgv: [] })
-    cron.schedule('0 0 1 * * *', () => {
+    if (process.env.NODE_ENV == "production") {
+      cron.schedule('0 0 1 * * *', () => {
+        defiSyncher.process()
+      })
+    } else if (process.env.NODE_ENV == "development" || process.env.SYNC == "force") {
       defiSyncher.process()
-    })
+    }
   }
 
   static async process() {

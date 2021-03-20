@@ -3,6 +3,7 @@ import { app } from './express'
 import * as mongoose from 'mongoose'
 import { Logger } from './utils/logger'
 import * as cluster from 'cluster'
+import { defiSyncher } from './batch/defiSync'
 
 mongoose.connect(config['mongoUri'], {
   useNewUrlParser: true,
@@ -22,6 +23,7 @@ if (cluster.isMaster) {
     // Create a worker
     cluster.fork();
   }
+  defiSyncher.schedule()
 } else {
   app.listen(config['port'], () => {
     Logger.instance.logger?.info('Server started on port %s.', config['port'])

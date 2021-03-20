@@ -39,7 +39,7 @@ export const getPairWeekData = async (difiName: string, pairId: string): Promise
 }
 
 export const list = async (req: Request, res: Response) => {
-  const release = await defiSyncher.instance.mutex.acquire()
+  // const release = await defiSyncher.instance.mutex.acquire()
   try {
     if (!(typeof req.query.name === 'string')) {
       res.status(400).send()
@@ -62,7 +62,7 @@ export const list = async (req: Request, res: Response) => {
     logger?.error(err)
     res.status(500).send()
   } finally {
-    release()
+    // release()
   }
 }
 

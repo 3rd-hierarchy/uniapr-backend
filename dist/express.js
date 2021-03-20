@@ -9,7 +9,6 @@ const helmet = require("helmet");
 const path = require("path");
 const api_routes_1 = require("./routes/api.routes");
 const logger_1 = require("./utils/logger");
-const defiSync_1 = require("./batch/defiSync");
 exports.app = express();
 const CURRENT_WORKING_DIR = process.cwd();
 exports.app.use('/dist', express.static(path.join(CURRENT_WORKING_DIR, 'dist/client')));
@@ -29,4 +28,3 @@ exports.app.use((err, req, res, next) => {
 exports.app.get('*', (req, res) => {
     res.status(200).sendFile(path.join(CURRENT_WORKING_DIR, 'dist/client/index.html'));
 });
-defiSync_1.defiSyncher.schedule();
