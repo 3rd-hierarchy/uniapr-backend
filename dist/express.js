@@ -26,5 +26,6 @@ exports.app.use((err, req, res, next) => {
     }
 });
 exports.app.get('*', (req, res) => {
+    res.setHeader("Content-Security-Policy", "script-src 'self' 'unsafe-inline' apis.google.com www.gstatic.com www.googletagmanager.com");
     res.status(200).sendFile(path.join(CURRENT_WORKING_DIR, 'dist/client/index.html'));
 });
