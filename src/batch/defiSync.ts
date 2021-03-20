@@ -67,7 +67,7 @@ export class defiSyncher {
       cron.schedule('0 0 1 * * *', () => {
         defiSyncher.process()
       })
-    } else if (process.env.NODE_ENV == "development") {
+    } else if (process.env.NODE_ENV == "development" || process.env.SYNC == "force") {
       defiSyncher.process()
     }
   }
