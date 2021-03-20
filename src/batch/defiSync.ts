@@ -4,13 +4,16 @@ import { Logger } from '../utils/logger'
 import * as path from 'path'
 import { Mutex } from 'async-mutex'
 import { append, getPairWeekData } from '../controllers/history.controller'
-import { HistorySchemaDefine } from '../models/history.schema'
+import { HistorySchemaDefine, IHistory } from '../commons/history.types'
 import * as mongoose from 'mongoose'
 import { config } from '../config/config'
-import { IHistory } from '../models/history.model'
 
-const DEFI_NAME = "UniswapV2"
+const UNISWAP_NAME = "UniswapV2"
 const UNISWAP_ENDPOINT = "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2"
+
+const SUSHISWAP_NAME = "Sushiswap"
+const SUSHISWAP_ENDPOINT = "https://api.thegraph.com/subgraphs/name/sushiswap/exchange"
+
 const ETH_ENDPOINT = "https://api.thegraph.com/subgraphs/name/blocklytics/ethereum-blocks"
 
 interface IAllPairs {
@@ -36,8 +39,8 @@ interface ITokenInfo {
   symbol: string
 }
 
-export class UniswapSyncher {
-  private static _self: UniswapSyncher
+export class defiSyncher {
+  private static _self: defiSyncher
   private _mutex = new Mutex()
   private _logger = Logger.instance.logger
 
@@ -47,14 +50,14 @@ export class UniswapSyncher {
 
   static get instance() {
     if (!this._self) {
-      this._self = new UniswapSyncher()
+      this._self = new defiSyncher()
     }
     return this._self
   }
 
   static schedule() {
     if (!this._self) {
-      this._self = new UniswapSyncher()
+      this._self = new defiSyncher()
     }
 
     // test
@@ -63,7 +66,7 @@ export class UniswapSyncher {
 
   static async process() {
     if (!this._self) {
-      this._self = new UniswapSyncher()
+      this._self = new defiSyncher()
     }
 
     mongoose.connect(config['mongoUri'], {
@@ -76,7 +79,8 @@ export class UniswapSyncher {
 
     const release = await this._self._mutex.acquire()
     try {
-      await this._self.processInternal()
+      await this._self.processInternal(UNISWAP_NAME, UNISWAP_ENDPOINT)
+      await this._self.processInternal(SUSHISWAP_NAME, SUSHISWAP_ENDPOINT)
     } finally {
       release()
     }
@@ -86,7 +90,9 @@ export class UniswapSyncher {
     
   }
 
-  private async processInternal() {
+  private async processInternal(name: string, endpoint: string) {
+    this._logger?.trace("[IN]defiSyncher#processInternal " + name)
+
     const time = new Date().getTime();
     const currentTime = Math.floor(time / 1000);
     const oneDayAgoTime = currentTime - 24 * 60 * 60;
@@ -101,18 +107,18 @@ export class UniswapSyncher {
 
     let pairs: IAllPairs
     try {
-      pairs = await this.getTopLiquidPairs()
+      pairs = await this.getTopLiquidPairs(endpoint)
     } catch (err) {
       this._logger?.error("Faild get pairs info. err = " + err)
       return
     }
 
-    pairs.pairs.map(async (value: { id: string }) => {
+    await Promise.all(pairs.pairs.map(async (value: { id: string }) => {
       let pairData: IPairInfo[]
       try {
         pairData = await Promise.all([
-          this.getPairData(value.id, ethBlockInfo.blocks[0].number),
-          this.getPairData(value.id)
+          this.getPairData(value.id, endpoint, ethBlockInfo.blocks[0].number),
+          this.getPairData(value.id, endpoint)
         ])
       } catch (err) {
         this._logger?.error("Faild get pair. err = " + err)
@@ -121,6 +127,10 @@ export class UniswapSyncher {
 
       if (pairData.length < 2) {
         this._logger?.error("Invalid pair length")
+        return
+      }
+
+      if (!pairData[0].pair) {
         return
       }
 
@@ -135,30 +145,34 @@ export class UniswapSyncher {
       const reservedUSD = parseFloat(pairData[1].pair.reserveUSD);
 
       var appendData = {
-        [HistorySchemaDefine.DEFI_NAME]: DEFI_NAME,
-        [HistorySchemaDefine.RESERVED_USD]: parseFloat(pairData[1].pair.reserveUSD),
-        [HistorySchemaDefine.VOLUME_USD]: volume,
+        [HistorySchemaDefine.DEFI_NAME]: name,
+        [HistorySchemaDefine.RESERVED_USD]: Math.floor(parseFloat(pairData[1].pair.reserveUSD)),
+        [HistorySchemaDefine.VOLUME_USD]: Math.floor(volume),
         [HistorySchemaDefine.PAIR_ID]: value.id,
         [HistorySchemaDefine.PAIR_NAME]: pairData[0].pair.token0.symbol + "-" + pairData[0].pair.token1.symbol,
-        [HistorySchemaDefine.APR]: this.getAnnualInterest(reservedUSD, volume),
+        [HistorySchemaDefine.APR]: Number((this.getAnnualInterest(reservedUSD, volume)).toFixed(2)),
         [HistorySchemaDefine.APR_WEEK]: -1
       }
 
       var aprWeak = -1
       try {
-        aprWeak = await this.getAprWeek(value.id, appendData)
+        aprWeak = await this.getAprWeek(value.id, appendData, name)
       } catch (err) {
 
       }
-      appendData.aprWeek = aprWeak
+      appendData.aprWeek = Number(aprWeak.toFixed(2))
 
       append(appendData)
-    })
+
+      return new Promise((resolve) => {
+        resolve(null)
+      })
+    }))
+
+    this._logger?.trace("[out]defiSyncher#processInternal " + name)
   }
 
-  private async getPairData(pair: string, block : string|undefined = undefined): Promise<IPairInfo>{
-    const endpoint = "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2";
-
+  private async getPairData(pair: string, endpoint: string, block : string|undefined = undefined): Promise<IPairInfo>{
     return new Promise((resolve, reject) => {
       var blockNumber = ""
       if (block) {
@@ -194,7 +208,7 @@ export class UniswapSyncher {
     });
   }
 
-  private async getTopLiquidPairs(): Promise<IAllPairs> {
+  private async getTopLiquidPairs(endpoint: string): Promise<IAllPairs> {
     return new Promise((resolve, reject) => {
       const query = gql`
       {
@@ -208,7 +222,7 @@ export class UniswapSyncher {
       }
     `;
 
-      request(UNISWAP_ENDPOINT, query)
+      request(endpoint, query)
         .then((data) => {
           const json = JSON.parse(JSON.stringify(data));
           resolve(json);
@@ -248,10 +262,10 @@ export class UniswapSyncher {
     return year
   }
 
-  private async getAprWeek(pairId: string, newest: IHistory): Promise<number> {
+  private async getAprWeek(pairId: string, newest: IHistory, name: string): Promise<number> {
     return new Promise(async (resolve, reject) => {
       try {
-        const weekData = await getPairWeekData(DEFI_NAME, pairId)
+        const weekData = await getPairWeekData(name, pairId)
 
         if (weekData.length < 2) {
           reject(-1)

@@ -1,7 +1,7 @@
 {
   "name": "uniapr",
   "version": "1.0.0",
-  "repository": "https://github.com/senioris/uniapr-backend",
+  "repository": "git@github.com:senioris/uniapr-backend.git",
   "author": "Senioris",
   "license": "MIT",
   "scripts": {

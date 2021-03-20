@@ -1,16 +1,7 @@
 import { model, Document } from 'mongoose'
-import { HistorySchemaDefine, HistorySchema } from './history.schema'
+import { HistorySchema } from './history.schema'
+import { IHistory } from '../commons/history.types'
 
-export interface IHistory {
-  [HistorySchemaDefine.DEFI_NAME]: string,
-  [HistorySchemaDefine.PAIR_NAME]: string,
-  [HistorySchemaDefine.PAIR_ID]: string,
-  [HistorySchemaDefine.RESERVED_USD]: number,
-  [HistorySchemaDefine.VOLUME_USD]: number,
-  [HistorySchemaDefine.APR]: number,
-  [HistorySchemaDefine.APR_WEEK]: number,
-  [HistorySchemaDefine.CREATED]?: Date
-}
 
 export interface IHistoryDocument extends IHistory, Document {}
 

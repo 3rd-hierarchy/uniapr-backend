@@ -22,7 +22,7 @@
     // "typeRoots": [ "server/types/express", "node_modules/@types" ],
     "sourceMap": false,
     "outDir": "./dist",
-    "composite": true,
+    "rootDir": "./src",
   },
   "include": [
     "./src/**/*",

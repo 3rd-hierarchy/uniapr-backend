@@ -2,6 +2,6 @@ const path = require('path')
 
 require("ts-node").register();
 
-const { UniswapSyncher } = require(path.join(__dirname, "uniswapSync.ts"));
+const { defiSyncher } = require(path.join(__dirname, "defiSync.ts"));
 
-UniswapSyncher.process()
+defiSyncher.process();
