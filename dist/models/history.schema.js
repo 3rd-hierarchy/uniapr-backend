@@ -1,42 +1,31 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.HistorySchema = exports.HistorySchemaDefine = void 0;
+exports.HistorySchema = void 0;
 const mongoose_1 = require("mongoose");
-var HistorySchemaDefine;
-(function (HistorySchemaDefine) {
-    HistorySchemaDefine.ID = '_id';
-    HistorySchemaDefine.DEFI_NAME = 'defiName';
-    HistorySchemaDefine.PAIR_NAME = 'pairName';
-    HistorySchemaDefine.PAIR_ID = 'pairId';
-    HistorySchemaDefine.RESERVED_USD = 'reserveUSD';
-    HistorySchemaDefine.VOLUME_USD = 'volumeUSD';
-    HistorySchemaDefine.APR = 'apr';
-    HistorySchemaDefine.APR_WEEK = 'aprWeek';
-    HistorySchemaDefine.CREATED = 'created';
-})(HistorySchemaDefine = exports.HistorySchemaDefine || (exports.HistorySchemaDefine = {}));
+const history_types_1 = require("../commons/history.types");
 exports.HistorySchema = new mongoose_1.Schema({
-    [HistorySchemaDefine.PAIR_NAME]: {
+    [history_types_1.HistorySchemaDefine.PAIR_NAME]: {
         type: String
     },
-    [HistorySchemaDefine.DEFI_NAME]: {
+    [history_types_1.HistorySchemaDefine.DEFI_NAME]: {
         type: String,
     },
-    [HistorySchemaDefine.PAIR_ID]: {
+    [history_types_1.HistorySchemaDefine.PAIR_ID]: {
         type: String
     },
-    [HistorySchemaDefine.RESERVED_USD]: {
+    [history_types_1.HistorySchemaDefine.RESERVED_USD]: {
         type: Number
     },
-    [HistorySchemaDefine.VOLUME_USD]: {
+    [history_types_1.HistorySchemaDefine.VOLUME_USD]: {
         type: Number
     },
-    [HistorySchemaDefine.APR]: {
+    [history_types_1.HistorySchemaDefine.APR]: {
         type: Number
     },
-    [HistorySchemaDefine.APR_WEEK]: {
+    [history_types_1.HistorySchemaDefine.APR_WEEK]: {
         type: Number
     },
-    [HistorySchemaDefine.CREATED]: {
+    [history_types_1.HistorySchemaDefine.CREATED]: {
         type: Date,
         default: () => new Date
     }

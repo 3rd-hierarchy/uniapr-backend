@@ -7,6 +7,7 @@ import { append, getPairWeekData } from '../controllers/history.controller'
 import { HistorySchemaDefine, IHistory } from '../commons/history.types'
 import * as mongoose from 'mongoose'
 import { config } from '../config/config'
+import * as cron from 'node-cron'
 
 const UNISWAP_NAME = "UniswapV2"
 const UNISWAP_ENDPOINT = "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2"
@@ -61,7 +62,10 @@ export class defiSyncher {
     }
 
     // test
-    new Worker(path.join(__dirname, 'worker.js'), { execArgv: [] })
+    // new Worker(path.join(__dirname, 'worker.js'), { execArgv: [] })
+    cron.schedule('0 0 1 * * *', () => {
+      defiSyncher.process()
+    })
   }
 
   static async process() {
@@ -77,12 +81,12 @@ export class defiSyncher {
       Logger.instance.logger?.error('Mongo db connection faild. (%s)', err)
     })
 
-    const release = await this._self._mutex.acquire()
+    // const release = await this._self._mutex.acquire()
     try {
       await this._self.processInternal(UNISWAP_NAME, UNISWAP_ENDPOINT)
       await this._self.processInternal(SUSHISWAP_NAME, SUSHISWAP_ENDPOINT)
     } finally {
-      release()
+      // release()
     }
   }
 

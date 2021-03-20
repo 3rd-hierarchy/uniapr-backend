@@ -6,7 +6,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "ts-node-dev --project ./tsconfig.json src/index.ts",
-    "builds": "./node_modules/.bin/tsc.cmd -b",
+    "build": "./node_modules/.bin/tsc.cmd -b",
     "start": "SET NODE_ENV=production && node ./dist/index.js",
     "clean": "rimraf dist/*"
   },
@@ -19,6 +19,7 @@
     "helmet": "^4.4.1",
     "log4js": "^6.3.0",
     "mongoose": "^5.11.19",
+    "node-cron": "^3.0.0",
     "node-schedule": "^2.0.0"
   },
   "devDependencies": {
@@ -29,6 +30,7 @@
     "@types/log4js": "^2.3.5",
     "@types/mongoose": "^5.10.3",
     "@types/node": "^14.14.31",
+    "@types/node-cron": "^2.0.3",
     "@types/node-schedule": "^1.3.1",
     "ts-node": "^9.1.1",
     "ts-node-dev": "^1.1.6",
