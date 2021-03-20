@@ -4,6 +4,7 @@ const config_1 = require("./config/config");
 const express_1 = require("./express");
 const mongoose = require("mongoose");
 const logger_1 = require("./utils/logger");
+const cluster = require("cluster");
 mongoose.connect(config_1.config['mongoUri'], {
     useNewUrlParser: true,
     useCreateIndex: true,
@@ -14,6 +15,19 @@ mongoose.connect(config_1.config['mongoUri'], {
 mongoose.connection.on('error', () => {
     throw new Error(`unable to connect to database: ${config_1.config['mongoUri']}`);
 });
-express_1.app.listen(config_1.config['port'], () => {
-    logger_1.Logger.instance.logger?.info('Server started on port %s.', config_1.config['port']);
+var numCPUs = require('os').cpus().length;
+if (cluster.isMaster) {
+    for (var i = 0; i < numCPUs; i++) {
+        // Create a worker
+        cluster.fork();
+    }
+}
+else {
+    express_1.app.listen(config_1.config['port'], () => {
+        logger_1.Logger.instance.logger?.info('Server started on port %s.', config_1.config['port']);
+    });
+}
+cluster.on('exit', function (worker, code, signal) {
+    console.log('Worker %d died with code/signal %s. Restarting worker...', worker.process.pid, signal || code);
+    cluster.fork();
 });
