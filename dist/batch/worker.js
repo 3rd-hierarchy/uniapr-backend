@@ -1,5 +1,5 @@
 "use strict";
 const path = require('path');
 require("ts-node").register();
-const { UniswapSyncher } = require(path.join(__dirname, "uniswapSync.ts"));
-UniswapSyncher.process();
+const { defiSyncher } = require(path.join(__dirname, "defiSync.ts"));
+defiSyncher.process();

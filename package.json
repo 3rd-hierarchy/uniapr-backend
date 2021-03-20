@@ -6,7 +6,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "ts-node-dev --project ./tsconfig.json src/index.ts",
-    "builds": "./node_modules/.bin/tsc.cmd -b",
+    "build": "./node_modules/.bin/tsc.cmd -b",
     "start": "SET NODE_ENV=production && node ./dist/index.js",
     "clean": "rimraf dist/*"
   },
