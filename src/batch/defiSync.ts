@@ -63,9 +63,11 @@ export class defiSyncher {
 
     // test
     // new Worker(path.join(__dirname, 'worker.js'), { execArgv: [] })
-    cron.schedule('0 0 1 * * *', () => {
-      defiSyncher.process()
-    })
+    if (!process.env.STAGING) {
+      cron.schedule('0 0 1 * * *', () => {
+        defiSyncher.process()
+      })
+    }
   }
 
   static async process() {
