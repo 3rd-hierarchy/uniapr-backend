@@ -11,7 +11,7 @@
     "clean": "rimraf dist/*",
     "tsc": "tsc",
     "heroku-postbuild": "tsc -b",
-    "startl": "SET NODE_ENV=production && node ./dist/index.js",
+    "startl": "SET NODE_ENV=production && node ./dist/index.js"
   },
   "dependencies": {
     "async-mutex": "^0.3.1",
