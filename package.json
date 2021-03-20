@@ -8,7 +8,9 @@
     "dev": "ts-node-dev --project ./tsconfig.json src/index.ts",
     "build": "./node_modules/.bin/tsc.cmd -b",
     "start": "SET NODE_ENV=production && node ./dist/index.js",
-    "clean": "rimraf dist/*"
+    "clean": "rimraf dist/*",
+    "tsc": "tsc",
+    "heroku-postbuild": "tsc -b"
   },
   "dependencies": {
     "async-mutex": "^0.3.1",
