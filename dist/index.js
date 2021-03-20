@@ -5,6 +5,7 @@ const express_1 = require("./express");
 const mongoose = require("mongoose");
 const logger_1 = require("./utils/logger");
 const cluster = require("cluster");
+const defiSync_1 = require("./batch/defiSync");
 mongoose.connect(config_1.config['mongoUri'], {
     useNewUrlParser: true,
     useCreateIndex: true,
@@ -21,6 +22,7 @@ if (cluster.isMaster) {
         // Create a worker
         cluster.fork();
     }
+    defiSync_1.defiSyncher.schedule();
 }
 else {
     express_1.app.listen(config_1.config['port'], () => {
