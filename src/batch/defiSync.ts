@@ -61,6 +61,7 @@ export class defiSyncher {
     if (!this._self) {
       this._self = new defiSyncher()
     }
+    this._self._logger?.trace("[IN]schedule")
 
     if (this._self._cronTask) {
       this._self._cronTask.destroy()
@@ -69,15 +70,16 @@ export class defiSyncher {
 
     // test
     // new Worker(path.join(__dirname, 'worker.js'), { execArgv: [] })
-    if (process.env.NODE_ENV == "production") {
+    if (config.env == "production") {
       this._self._cronTask = cron.schedule('0 0 1 * * *', () => {
         defiSyncher.process()
-        Logger.instance.logger?.trace('production mode sceduled')
       })
-    } else if (process.env.SYNC == "force") {
+      this._self._logger?.trace('production mode sceduled')
+    } else if (config.sync) {
       defiSyncher.process()
-      Logger.instance.logger?.trace('processed force sync')
+      this._self._logger?.trace('processed force sync')
     }
+    this._self._logger?.trace("[OUT]schedule")
   }
 
   static async process() {
