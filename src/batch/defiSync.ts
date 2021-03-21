@@ -68,11 +68,17 @@ export class defiSyncher {
       this._self._cronTask = null
     }
 
+    if (this._self._cronTask) {
+      this._self._cronTask.destroy()
+      this._self._cronTask = null
+    }
+
     // test
     // new Worker(path.join(__dirname, 'worker.js'), { execArgv: [] })
     if (config.env == "production") {
       this._self._cronTask = cron.schedule('0 0 1 * * *', () => {
         defiSyncher.process()
+        Logger.instance.logger?.trace('production mode sceduled')
       })
       this._self._logger?.trace('production mode sceduled')
     } else if (config.sync) {
