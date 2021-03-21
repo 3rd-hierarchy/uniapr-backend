@@ -44,6 +44,7 @@ export class defiSyncher {
   private static _self: defiSyncher
   private _mutex = new Mutex()
   private _logger = Logger.instance.logger
+  private _cronTask: cron.ScheduledTask | null = null
 
   get mutex() {
     return this._mutex
@@ -61,14 +62,21 @@ export class defiSyncher {
       this._self = new defiSyncher()
     }
 
+    if (this._self._cronTask) {
+      this._self._cronTask.destroy()
+      this._self._cronTask = null
+    }
+
     // test
     // new Worker(path.join(__dirname, 'worker.js'), { execArgv: [] })
     if (process.env.NODE_ENV == "production") {
-      cron.schedule('0 0 1 * * *', () => {
+      this._self._cronTask = cron.schedule('0 0 1 * * *', () => {
         defiSyncher.process()
+        Logger.instance.logger?.trace('production mode sceduled')
       })
-    } else if (process.env.NODE_ENV == "development" || process.env.SYNC == "force") {
+    } else if (process.env.SYNC == "force") {
       defiSyncher.process()
+      Logger.instance.logger?.trace('processed force sync')
     }
   }
 

@@ -37,10 +37,12 @@ class defiSyncher {
         if (process.env.NODE_ENV == "production") {
             cron.schedule('0 0 1 * * *', () => {
                 defiSyncher.process();
+                logger_1.Logger.instance.logger?.trace('production mode sceduled');
             });
         }
-        else if (process.env.NODE_ENV == "development" || process.env.SYNC == "force") {
+        else if (process.env.SYNC == "force") {
             defiSyncher.process();
+            logger_1.Logger.instance.logger?.trace('processed force sync');
         }
     }
     static async process() {

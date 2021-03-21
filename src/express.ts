@@ -11,7 +11,7 @@ import { Logger } from './utils/logger'
 export const app: express.Express = express()
 
 const CURRENT_WORKING_DIR = process.cwd()
-app.use('/dist', express.static(path.join(CURRENT_WORKING_DIR, 'dist/client')))
+app.use('/public', express.static(path.join(CURRENT_WORKING_DIR, 'public')))
 
 app.use(json())
 app.use(urlencoded({ extended: true}))
@@ -32,6 +32,6 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
 
 app.get('*', (req, res) => {
   res.setHeader("Content-Security-Policy", "script-src 'self' 'unsafe-inline' apis.google.com www.gstatic.com www.googletagmanager.com");
-  res.status(200).sendFile(path.join(CURRENT_WORKING_DIR, 'dist/client/index.html'))
+  res.status(200).sendFile(path.join(CURRENT_WORKING_DIR, 'public/client/index.html'))
 })
 
