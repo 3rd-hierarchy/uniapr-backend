@@ -23,12 +23,20 @@ app.use(Logger.instance.accessLogger)
 
 app.use('/', ApiRouter)
 
-app.use((err: Error, req: express.Request, res: express.Response) => {
-  if (err) {
-    res.status(400).json({ error: err.name + ': ' + err.message })
-    console.log(err)
+app.use(
+  (
+    err: Error,
+    req: express.Request,
+    res: express.Response,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    next: express.NextFunction
+  ) => {
+    if (err) {
+      res.status(400).json({ error: err.name + ': ' + err.message })
+      console.log(err)
+    }
   }
-})
+)
 
 app.get('*', (req, res) => {
   res.setHeader(
