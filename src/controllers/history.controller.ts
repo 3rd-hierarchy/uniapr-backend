@@ -1,15 +1,13 @@
-import { defiSyncher } from "../batch/defiSync";
-import { HistoryModel, IHistoryDocument } from "../models/history.model";
-import { IHistory, HistorySchemaDefine } from "../commons/history.types";
-import { Logger } from "../utils/logger"
-import { Request, Response, NextFunction } from 'express'
-import request from "graphql-request";
+import { HistoryModel, IHistoryDocument } from '../models/history.model'
+import { IHistory, HistorySchemaDefine } from '../commons/history.types'
+import { Logger } from '../utils/logger'
+import { Request, Response } from 'express'
 
 const LIST_COUNT = 100
 const logger = Logger.instance.logger
 
-export const append = (data: IHistory) => {
-  let history = new HistoryModel(data)
+export const append = (data: IHistory): void => {
+  const history = new HistoryModel(data)
 
   try {
     history.save()
@@ -18,27 +16,26 @@ export const append = (data: IHistory) => {
   }
 }
 
-export const getPairWeekData = async (difiName: string, pairId: string): Promise<IHistoryDocument[]> => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      let histories = await HistoryModel.find(
-        {
-          [HistorySchemaDefine.DEFI_NAME]: difiName,
-          [HistorySchemaDefine.PAIR_ID]: pairId
-        }
-      ).sort(
-        { [HistorySchemaDefine.CREATED]: -1 }
-      ).limit(6)
+export const getPairWeekData = async (
+  difiName: string,
+  pairId: string
+): Promise<IHistoryDocument[]> => {
+  try {
+    const histories = await HistoryModel.find({
+      [HistorySchemaDefine.DEFI_NAME]: difiName,
+      [HistorySchemaDefine.PAIR_ID]: pairId,
+    })
+      .sort({ [HistorySchemaDefine.CREATED]: -1 })
+      .limit(6)
 
-      resolve(histories)
-    } catch (err) {
-      logger?.error(err)
-      reject(err)
-    }
-  })
+    return histories
+  } catch (err) {
+    logger?.error(err)
+    return err
+  }
 }
 
-export const list = async (req: Request, res: Response) => {
+export const list = async (req: Request, res: Response): Promise<void> => {
   // const release = await defiSyncher.instance.mutex.acquire()
   try {
     if (!(typeof req.query.name === 'string')) {
@@ -46,16 +43,19 @@ export const list = async (req: Request, res: Response) => {
       return
     }
 
-    const histories = await HistoryModel
-      .find({ [HistorySchemaDefine.DEFI_NAME]: req.query.name})
-      .sort({[HistorySchemaDefine.CREATED]: -1})
+    const histories = await HistoryModel.find({
+      [HistorySchemaDefine.DEFI_NAME]: req.query.name,
+    })
+      .sort({ [HistorySchemaDefine.CREATED]: -1 })
       .limit(LIST_COUNT * 2)
 
     const shurinked = removeDucplicate(histories)
 
-    const sorted = shurinked.sort((a, b): number => {
-      return b.reserveUSD - a.reserveUSD
-    }).slice(0, LIST_COUNT)
+    const sorted = shurinked
+      .sort((a, b): number => {
+        return b.reserveUSD - a.reserveUSD
+      })
+      .slice(0, LIST_COUNT)
 
     res.json(sorted)
   } catch (err) {
@@ -67,9 +67,9 @@ export const list = async (req: Request, res: Response) => {
 }
 
 function removeDucplicate(source: IHistory[]): IHistory[] {
-  var pairNameArray = [] as string[]
+  const pairNameArray = [] as string[]
 
-  let dist = source.filter((data) => {
+  const dist = source.filter((data) => {
     if (pairNameArray.includes(data.pairName)) {
       return false
     } else {

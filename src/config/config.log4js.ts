@@ -1,18 +1,18 @@
 export const log4jsConfig = {
   appenders: {
     console: {
-      type: "console"
-    }
+      type: 'console',
+    },
   },
 
   categories: {
     default: {
-      appenders: ["console"],
-      level: "all"
+      appenders: ['console'],
+      level: 'all',
     },
     web: {
-      appenders: ["console"],
-      level: "info"
-    }
-  }
+      appenders: ['console'],
+      level: 'info',
+    },
+  },
 }

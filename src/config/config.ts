@@ -1,10 +1,14 @@
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const config: { [key: string]: any } = {
   env: process.env.NODE_ENV || 'development',
   port: process.env.PORT || 3000,
-  sync: process.env.SYNC == "force" ? true : false,
-  mongoUri: process.env.MONGODB_URI ||
+  sync: process.env.SYNC == 'force' ? true : false,
+  mongoUri:
+    process.env.MONGODB_URI ||
     process.env.MONGO_HOST ||
-    'mongodb://' + (process.env.IP || 'localhost') + ':' +
-    (process.env.MONGO_PORT || '27017') +
-    '/defiapr'
+    'mongodb://' +
+      (process.env.IP || 'localhost') +
+      ':' +
+      (process.env.MONGO_PORT || '27017') +
+      '/defiapr',
 }
