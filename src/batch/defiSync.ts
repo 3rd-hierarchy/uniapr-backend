@@ -286,7 +286,7 @@ export class defiSyncher {
       try {
         const weekData = await getPairWeekData(name, pairId)
 
-        if (weekData.length < 2) {
+        if (weekData.length < 6) {
           reject(-1)
           return
         }
