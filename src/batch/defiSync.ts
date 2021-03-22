@@ -180,7 +180,7 @@ export class defiSyncher {
             '-' +
             pairData[0].pair.token1.symbol,
           [HistorySchemaDefine.APR]: Number(
-            this.getAnnualInterest(reservedUSD, volume).toFixed(2)
+            this.getAnnualInterest(reservedUSD, volume, name).toFixed(2)
           ),
           [HistorySchemaDefine.APR_WEEK]: -1,
         }
@@ -277,9 +277,10 @@ export class defiSyncher {
     }
   }
 
-  private getAnnualInterest(liquidity: number, volume: number) {
+  private getAnnualInterest(liquidity: number, volume: number, name: string) {
+    const fees = name == UNISWAP_NAME ? 0.003 : 0.0025
     const ratio = volume / liquidity
-    const day = ratio * 0.003
+    const day = ratio * fees
     const year = ((1 + day) ** 365 - 1) * 100
 
     return year
@@ -304,7 +305,7 @@ export class defiSyncher {
 
       const volumeAverage = totalVolume / (weekData.length + 1)
 
-      return this.getAnnualInterest(weekData[0].reserveUSD, volumeAverage)
+      return this.getAnnualInterest(weekData[0].reserveUSD, volumeAverage, name)
     } catch (err) {
       return -1
     }
