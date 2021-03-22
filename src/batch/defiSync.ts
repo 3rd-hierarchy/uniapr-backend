@@ -1,37 +1,39 @@
 import { request, gql } from 'graphql-request'
-import { Worker } from 'worker_threads'
+// import { Worker } from 'worker_threads'
 import { Logger } from '../utils/logger'
-import * as path from 'path'
-import { Mutex } from 'async-mutex'
+// import { Mutex } from 'async-mutex'
 import { append, getPairWeekData } from '../controllers/history.controller'
 import { HistorySchemaDefine, IHistory } from '../commons/history.types'
 import * as mongoose from 'mongoose'
 import { config } from '../config/config'
 import * as cron from 'node-cron'
 
-const UNISWAP_NAME = "UniswapV2"
-const UNISWAP_ENDPOINT = "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2"
+const UNISWAP_NAME = 'UniswapV2'
+const UNISWAP_ENDPOINT =
+  'https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2'
 
-const SUSHISWAP_NAME = "Sushiswap"
-const SUSHISWAP_ENDPOINT = "https://api.thegraph.com/subgraphs/name/sushiswap/exchange"
+const SUSHISWAP_NAME = 'Sushiswap'
+const SUSHISWAP_ENDPOINT =
+  'https://api.thegraph.com/subgraphs/name/sushiswap/exchange'
 
-const ETH_ENDPOINT = "https://api.thegraph.com/subgraphs/name/blocklytics/ethereum-blocks"
+const ETH_ENDPOINT =
+  'https://api.thegraph.com/subgraphs/name/blocklytics/ethereum-blocks'
 
 interface IAllPairs {
-  pairs: { id: string }[],
+  pairs: { id: string }[]
 }
 
 interface IEthBlockInfo {
   blocks: {
-    number: string,
+    number: string
   }[]
 }
 
 interface IPairInfo {
   pair: {
-    reserveUSD: string,
-    token0: ITokenInfo,
-    token1: ITokenInfo,
+    reserveUSD: string
+    token0: ITokenInfo
+    token1: ITokenInfo
     volumeUSD: string
   }
 }
@@ -42,26 +44,26 @@ interface ITokenInfo {
 
 export class defiSyncher {
   private static _self: defiSyncher
-  private _mutex = new Mutex()
+  // private _mutex = new Mutex()
   private _logger = Logger.instance.logger
   private _cronTask: cron.ScheduledTask | null = null
 
-  get mutex() {
-    return this._mutex
-  }
+  // get mutex() {
+  //   return this._mutex
+  // }
 
-  static get instance() {
+  static get instance(): defiSyncher {
     if (!this._self) {
       this._self = new defiSyncher()
     }
     return this._self
   }
 
-  static schedule() {
+  static schedule(): void {
     if (!this._self) {
       this._self = new defiSyncher()
     }
-    this._self._logger?.trace("[IN]schedule")
+    this._self._logger?.trace('[IN]schedule')
 
     if (this._self._cronTask) {
       this._self._cronTask.destroy()
@@ -70,7 +72,7 @@ export class defiSyncher {
 
     // test
     // new Worker(path.join(__dirname, 'worker.js'), { execArgv: [] })
-    if (config.env == "production") {
+    if (config.env == 'production') {
       this._self._cronTask = cron.schedule('0 0 1 * * *', () => {
         defiSyncher.process()
         Logger.instance.logger?.trace('production mode sceduled')
@@ -80,21 +82,23 @@ export class defiSyncher {
       defiSyncher.process()
       this._self._logger?.trace('processed force sync')
     }
-    this._self._logger?.trace("[OUT]schedule")
+    this._self._logger?.trace('[OUT]schedule')
   }
 
-  static async process() {
+  static async process(): Promise<void> {
     if (!this._self) {
       this._self = new defiSyncher()
     }
 
-    mongoose.connect(config['mongoUri'], {
-      useNewUrlParser: true,
-      useCreateIndex: true,
-      useUnifiedTopology: true
-    }).catch((err) => {
-      Logger.instance.logger?.error('Mongo db connection faild. (%s)', err)
-    })
+    mongoose
+      .connect(config['mongoUri'], {
+        useNewUrlParser: true,
+        useCreateIndex: true,
+        useUnifiedTopology: true,
+      })
+      .catch((err) => {
+        Logger.instance.logger?.error('Mongo db connection faild. (%s)', err)
+      })
 
     // const release = await this._self._mutex.acquire()
     try {
@@ -105,22 +109,18 @@ export class defiSyncher {
     }
   }
 
-  private constructor() {
-    
-  }
-
   private async processInternal(name: string, endpoint: string) {
-    this._logger?.trace("[IN]defiSyncher#processInternal " + name)
+    this._logger?.trace('[IN]defiSyncher#processInternal ' + name)
 
-    const time = new Date().getTime();
-    const currentTime = Math.floor(time / 1000);
-    const oneDayAgoTime = currentTime - 24 * 60 * 60;
+    const time = new Date().getTime()
+    const currentTime = Math.floor(time / 1000)
+    const oneDayAgoTime = currentTime - 24 * 60 * 60
 
     let ethBlockInfo: IEthBlockInfo
     try {
       ethBlockInfo = await this.getEthTransactionInfo(oneDayAgoTime)
     } catch (err) {
-      this._logger?.error("Faild get eth blog info. err = " + err)
+      this._logger?.error('Faild get eth blog info. err = ' + err)
       return
     }
 
@@ -128,77 +128,89 @@ export class defiSyncher {
     try {
       pairs = await this.getTopLiquidPairs(endpoint)
     } catch (err) {
-      this._logger?.error("Faild get pairs info. err = " + err)
+      this._logger?.error('Faild get pairs info. err = ' + err)
       return
     }
 
-    await Promise.all(pairs.pairs.map(async (value: { id: string }) => {
-      let pairData: IPairInfo[]
-      try {
-        pairData = await Promise.all([
-          this.getPairData(value.id, endpoint, ethBlockInfo.blocks[0].number),
-          this.getPairData(value.id, endpoint)
-        ])
-      } catch (err) {
-        this._logger?.error("Faild get pair. err = " + err)
-        return
-      }
+    await Promise.all(
+      pairs.pairs.map(async (value: { id: string }) => {
+        let pairData: IPairInfo[]
+        try {
+          pairData = await Promise.all([
+            this.getPairData(value.id, endpoint, ethBlockInfo.blocks[0].number),
+            this.getPairData(value.id, endpoint),
+          ])
+        } catch (err) {
+          this._logger?.error('Faild get pair. err = ' + err)
+          return
+        }
 
-      if (pairData.length < 2) {
-        this._logger?.error("Invalid pair length")
-        return
-      }
+        if (pairData.length < 2) {
+          this._logger?.error('Invalid pair length')
+          return
+        }
 
-      if (!pairData[0].pair) {
-        return
-      }
+        if (!pairData[0].pair) {
+          return
+        }
 
-      const volumeUSD = parseFloat(pairData[1].pair.volumeUSD)
-      if (volumeUSD <= 0) {
-        return
-      }
+        const volumeUSD = parseFloat(pairData[1].pair.volumeUSD)
+        if (volumeUSD <= 0) {
+          return
+        }
 
-      const baseVolume = parseFloat(pairData[0].pair.volumeUSD);
-      const currentVolume = parseFloat(pairData[1].pair.volumeUSD);
-      const volume = currentVolume - baseVolume;
-      const reservedUSD = parseFloat(pairData[1].pair.reserveUSD);
+        const baseVolume = parseFloat(pairData[0].pair.volumeUSD)
+        const currentVolume = parseFloat(pairData[1].pair.volumeUSD)
+        const volume = currentVolume - baseVolume
+        const reservedUSD = parseFloat(pairData[1].pair.reserveUSD)
 
-      var appendData = {
-        [HistorySchemaDefine.DEFI_NAME]: name,
-        [HistorySchemaDefine.RESERVED_USD]: Math.floor(parseFloat(pairData[1].pair.reserveUSD)),
-        [HistorySchemaDefine.VOLUME_USD]: Math.floor(volume),
-        [HistorySchemaDefine.PAIR_ID]: value.id,
-        [HistorySchemaDefine.PAIR_NAME]: pairData[0].pair.token0.symbol + "-" + pairData[0].pair.token1.symbol,
-        [HistorySchemaDefine.APR]: Number((this.getAnnualInterest(reservedUSD, volume)).toFixed(2)),
-        [HistorySchemaDefine.APR_WEEK]: -1
-      }
+        const appendData = {
+          [HistorySchemaDefine.DEFI_NAME]: name,
+          [HistorySchemaDefine.RESERVED_USD]: Math.floor(
+            parseFloat(pairData[1].pair.reserveUSD)
+          ),
+          [HistorySchemaDefine.VOLUME_USD]: Math.floor(volume),
+          [HistorySchemaDefine.PAIR_ID]: value.id,
+          [HistorySchemaDefine.PAIR_NAME]:
+            pairData[0].pair.token0.symbol +
+            '-' +
+            pairData[0].pair.token1.symbol,
+          [HistorySchemaDefine.APR]: Number(
+            this.getAnnualInterest(reservedUSD, volume).toFixed(2)
+          ),
+          [HistorySchemaDefine.APR_WEEK]: -1,
+        }
 
-      var aprWeak = -1
-      try {
-        aprWeak = await this.getAprWeek(value.id, appendData, name)
-      } catch (err) {
+        let aprWeak = -1
+        try {
+          aprWeak = await this.getAprWeek(value.id, appendData, name)
+        } catch (err) {
+          this._logger?.error(
+            'defiSyncher#processInternal getAprWeek exception:' + err
+          )
+        }
+        appendData.aprWeek = Number(aprWeak.toFixed(2))
 
-      }
-      appendData.aprWeek = Number(aprWeak.toFixed(2))
+        append(appendData)
 
-      append(appendData)
-
-      return new Promise((resolve) => {
-        resolve(null)
+        return null
       })
-    }))
+    )
 
-    this._logger?.trace("[out]defiSyncher#processInternal " + name)
+    this._logger?.trace('[out]defiSyncher#processInternal ' + name)
   }
 
-  private async getPairData(pair: string, endpoint: string, block : string|undefined = undefined): Promise<IPairInfo>{
-    return new Promise((resolve, reject) => {
-      var blockNumber = ""
-      if (block) {
-        blockNumber = `block: { number: ${block} }`
-      }
+  private async getPairData(
+    pair: string,
+    endpoint: string,
+    block: string | undefined = undefined
+  ): Promise<IPairInfo> {
+    let blockNumber = ''
+    if (block) {
+      blockNumber = `block: { number: ${block} }`
+    }
 
-      const query = gql`
+    const query = gql`
       {
         pair(
           id: "${pair}"
@@ -214,94 +226,83 @@ export class defiSyncher {
           volumeUSD
         }
       }
-    `;
+    `
 
-      request(endpoint, query)
-        .then((data) => {
-          const json = JSON.parse(JSON.stringify(data));
-          resolve(json);
-        })
-        .catch((error) => {
-          reject(error);
-        });
-    });
+    try {
+      const data = await request(endpoint, query)
+      const json = JSON.parse(JSON.stringify(data))
+      return json
+    } catch (err) {
+      return err
+    }
   }
 
   private async getTopLiquidPairs(endpoint: string): Promise<IAllPairs> {
-    return new Promise((resolve, reject) => {
-      const query = gql`
+    const query = gql`
       {
-        pairs(
-          first: 200
-          orderBy: reserveUSD
-          orderDirection: desc
-        ) {
+        pairs(first: 200, orderBy: reserveUSD, orderDirection: desc) {
           id
         }
       }
-    `;
+    `
 
-      request(endpoint, query)
-        .then((data) => {
-          const json = JSON.parse(JSON.stringify(data));
-          resolve(json);
-        })
-        .catch((error) => {
-          reject(error);
-        });
-    })
+    try {
+      const data = await request(endpoint, query)
+      const json = JSON.parse(JSON.stringify(data))
+      return json
+    } catch (err) {
+      return err
+    }
   }
 
-
   private async getEthTransactionInfo(time: number): Promise<IEthBlockInfo> {
-    return new Promise((resolve, reject) => {
-      const query = gql`
+    const query = gql`
       {
         blocks(first: 1, orderBy: timestamp, orderDirection: asc, where: {timestamp_gt: "${time}"}) {
             number
         }
       }
     `
-      request(ETH_ENDPOINT, query).then((data) => {
-        const json = JSON.parse(JSON.stringify(data))
-        this._logger?.debug(JSON.stringify(data));
-        resolve(json);
-      }).catch((error) => {
-        reject(error);
-      })
-    });
+    try {
+      const data = await request(ETH_ENDPOINT, query)
+      const json = JSON.parse(JSON.stringify(data))
+      this._logger?.debug(json)
+      return json
+    } catch (err) {
+      return err
+    }
   }
 
   private getAnnualInterest(liquidity: number, volume: number) {
     const ratio = volume / liquidity
-    const day = ratio * 0.003;
-    const month = ((1 + day) ** 30 - 1) * 100;
+    const day = ratio * 0.003
     const year = ((1 + day) ** 365 - 1) * 100
 
     return year
   }
 
-  private async getAprWeek(pairId: string, newest: IHistory, name: string): Promise<number> {
-    return new Promise(async (resolve, reject) => {
-      try {
-        const weekData = await getPairWeekData(name, pairId)
+  private async getAprWeek(
+    pairId: string,
+    newest: IHistory,
+    name: string
+  ): Promise<number> {
+    try {
+      const weekData = await getPairWeekData(name, pairId)
 
-        if (weekData.length < 6) {
-          reject(-1)
-          return
-        }
-
-        let totalVolume = weekData.reduce((acc, val): number => {
-          return acc + val.volumeUSD
-        }, 0)
-        totalVolume += newest.volumeUSD
-
-        const volumeAverage = totalVolume / (weekData.length + 1)
-
-        resolve(this.getAnnualInterest(weekData[0].reserveUSD, volumeAverage))
-      } catch (err) {
-        reject(-1)
+      if (weekData.length < 6) {
+        return -1
       }
-    })
+
+      let totalVolume = weekData.reduce((acc, val): number => {
+        return acc + val.volumeUSD
+      }, 0)
+      totalVolume += newest.volumeUSD
+
+      const volumeAverage = totalVolume / (weekData.length + 1)
+
+      return this.getAnnualInterest(weekData[0].reserveUSD, volumeAverage)
+    } catch (err) {
+      return -1
+    }
   }
 }

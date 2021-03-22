@@ -22,14 +22,8 @@
     // "typeRoots": [ "server/types/express", "node_modules/@types" ],
     "sourceMap": false,
     "outDir": "./dist",
-    "rootDir": "./src",
+    "rootDir": "./src"
   },
-  "include": [
-    "./src/**/*",
-  ],
-  "exclude": [
-    "./.vscode",
-    "./node_modules",
-    "./dist"
-  ]
+  "include": ["./src/**/*"],
+  "exclude": ["./.vscode", "./node_modules", "./dist"]
 }
