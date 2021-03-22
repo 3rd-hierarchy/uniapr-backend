@@ -154,6 +154,10 @@ export class defiSyncher {
           return
         }
 
+        if (!pairData[1].pair) {
+          return
+        }
+
         const volumeUSD = parseFloat(pairData[1].pair.volumeUSD)
         if (volumeUSD <= 0) {
           return
