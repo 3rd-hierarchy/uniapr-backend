@@ -47,7 +47,7 @@ export const history = async (req: Request, res: Response): Promise<void> => {
         [HistorySchemaDefine.PAIR_ID]: req.query.id,
       })
       .sort({
-        [HistorySchemaDefine.CREATED]: -1,
+        [HistorySchemaDefine.CREATED]: 1,
       })
       .limit(30)
 
