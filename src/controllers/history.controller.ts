@@ -35,6 +35,29 @@ export const getPairWeekData = async (
   }
 }
 
+export const history = async (req: Request, res: Response): Promise<void> => {
+  try {
+    if (!(typeof req.query.id === 'string')) {
+      res.status(400).send()
+      return
+    }
+
+    const histories = await HistoryModel
+      .find({
+        [HistorySchemaDefine.PAIR_ID]: req.query.id,
+      })
+      .sort({
+        [HistorySchemaDefine.CREATED]: 1,
+      })
+      .limit(30)
+
+    res.json(histories)
+  } catch (err) {
+    logger?.error(err)
+    res.status(500).send()
+  }
+}
+
 export const list = async (req: Request, res: Response): Promise<void> => {
   // const release = await defiSyncher.instance.mutex.acquire()
   try {
