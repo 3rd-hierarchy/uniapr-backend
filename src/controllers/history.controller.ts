@@ -47,11 +47,19 @@ export const history = async (req: Request, res: Response): Promise<void> => {
         [HistorySchemaDefine.PAIR_ID]: req.query.id,
       })
       .sort({
-        [HistorySchemaDefine.CREATED]: 1,
+        [HistorySchemaDefine.CREATED]: -1,
       })
       .limit(30)
 
-    res.json(histories)
+    const sorted = histories.sort((a, b): number => {
+      if (!a.created || !b.created) {
+        return 0
+      }
+
+      return a.created?.getTime() - b.created?.getTime()
+    })
+
+    res.json(sorted)
   } catch (err) {
     logger?.error(err)
     res.status(500).send()
