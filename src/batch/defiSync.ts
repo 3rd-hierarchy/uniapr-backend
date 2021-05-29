@@ -16,6 +16,11 @@ const SUSHISWAP_NAME = 'Sushiswap'
 const SUSHISWAP_ENDPOINT =
   'https://api.thegraph.com/subgraphs/name/sushiswap/exchange'
 
+const SUSHISWAP_MATIC_NAME = 'Sushiswap(matic)'
+const SUSHISWAP_MATIC_ENDPOINT =
+  'https://api.thegraph.com/subgraphs/name/sushiswap/matic-exchange'
+
+
 const QUICKSWAP_NAME = 'Quickswap'
 const QUICKSWAP_ENDPOINT =
   'https://api.thegraph.com/subgraphs/name/sameepsi/quickswap06'
@@ -112,6 +117,7 @@ export class defiSyncher {
       await this._self.processInternal(UNISWAP_NAME, UNISWAP_ENDPOINT, ETH_ENDPOINT)
       await this._self.processInternal(SUSHISWAP_NAME, SUSHISWAP_ENDPOINT, ETH_ENDPOINT)
       await this._self.processInternal(QUICKSWAP_NAME, QUICKSWAP_ENDPOINT, MATIC_ENDPOINT)
+      await this._self.processInternal(SUSHISWAP_MATIC_NAME, SUSHISWAP_MATIC_ENDPOINT, MATIC_ENDPOINT)
     } finally {
       // release()
     }
