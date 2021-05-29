@@ -16,8 +16,15 @@ const SUSHISWAP_NAME = 'Sushiswap'
 const SUSHISWAP_ENDPOINT =
   'https://api.thegraph.com/subgraphs/name/sushiswap/exchange'
 
+const QUICKSWAP_NAME = 'Quickswap'
+const QUICKSWAP_ENDPOINT =
+  'https://api.thegraph.com/subgraphs/name/sameepsi/quickswap06'
+
 const ETH_ENDPOINT =
   'https://api.thegraph.com/subgraphs/name/blocklytics/ethereum-blocks'
+
+const MATIC_ENDPOINT = 
+  'https://api.thegraph.com/subgraphs/name/decentraland/blocks-matic-mainnet'
 
 interface IAllPairs {
   pairs: { id: string }[]
@@ -102,14 +109,15 @@ export class defiSyncher {
 
     // const release = await this._self._mutex.acquire()
     try {
-      await this._self.processInternal(UNISWAP_NAME, UNISWAP_ENDPOINT)
-      await this._self.processInternal(SUSHISWAP_NAME, SUSHISWAP_ENDPOINT)
+      await this._self.processInternal(UNISWAP_NAME, UNISWAP_ENDPOINT, ETH_ENDPOINT)
+      await this._self.processInternal(SUSHISWAP_NAME, SUSHISWAP_ENDPOINT, ETH_ENDPOINT)
+      await this._self.processInternal(QUICKSWAP_NAME, QUICKSWAP_ENDPOINT, MATIC_ENDPOINT)
     } finally {
       // release()
     }
   }
 
-  private async processInternal(name: string, endpoint: string) {
+  private async processInternal(name: string, endpoint: string, chain: string) {
     this._logger?.trace('[IN]defiSyncher#processInternal ' + name)
 
     const time = new Date().getTime()
@@ -118,7 +126,7 @@ export class defiSyncher {
 
     let ethBlockInfo: IEthBlockInfo
     try {
-      ethBlockInfo = await this.getEthTransactionInfo(oneDayAgoTime)
+      ethBlockInfo = await this.getChainTransactionInfo(oneDayAgoTime, chain)
     } catch (err) {
       this._logger?.error('Faild get eth blog info. err = ' + err)
       return
@@ -259,7 +267,7 @@ export class defiSyncher {
     }
   }
 
-  private async getEthTransactionInfo(time: number): Promise<IEthBlockInfo> {
+  private async getChainTransactionInfo(time: number, endpoint: string): Promise<IEthBlockInfo> {
     const query = gql`
       {
         blocks(first: 1, orderBy: timestamp, orderDirection: asc, where: {timestamp_gt: "${time}"}) {
@@ -268,7 +276,7 @@ export class defiSyncher {
       }
     `
     try {
-      const data = await request(ETH_ENDPOINT, query)
+      const data = await request(endpoint, query)
       const json = JSON.parse(JSON.stringify(data))
       this._logger?.debug(json)
       return json
